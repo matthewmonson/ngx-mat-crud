@@ -1,4 +1,4 @@
-import { Inject, Component } from "@angular/core";
+import { Inject, Component, AfterViewInit } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from "@angular/material/dialog";
 
@@ -15,6 +15,7 @@ import { Subject, BehaviorSubject } from "rxjs";
 import { CrudEventType } from "../enums/crud-event-type-enum";
 import { EventEmitter } from "events";
 
+/*
 @Component({
     selector: 'confirm-delete-dialog',
     template: `
@@ -38,13 +39,13 @@ export class ConfirmDeleteDialogComponent {
         this.dialogRef.close(true);
     }
 }
-
+*/
 @Component({
     selector: 'crud-dialog',
     templateUrl: './dialog.component.html',
     styleUrls: ['./dialog.component.scss']
 })
-export class DialogComponent {
+export class DialogComponent implements AfterViewInit {
 
     formMode: string;
     formDefinition : FormDefinition;
@@ -53,6 +54,8 @@ export class DialogComponent {
 
     formFields : FormFieldBase<any>[] = [];
     form : FormGroup;
+
+    title : string = "";
 
     private loadingSubject = new BehaviorSubject<boolean>(false);
     public loading$ = this.loadingSubject.asObservable();
@@ -74,7 +77,7 @@ export class DialogComponent {
     submit() {
         this.crudEvent.next({eventType: CrudEventType.FORMSUBMITTED})
     }
-
+    /*
     delete() {
         const confirmDialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
             width: '350px'
@@ -95,7 +98,7 @@ export class DialogComponent {
                     )
             }
           });
-    }
+    }*/
 
     // CrudEvents coming from the form component
     onFormEvent($event : CrudEvent) {        
@@ -174,7 +177,23 @@ export class DialogComponent {
             }
         });
 
-        console.log("FORM FIELDS: " + JSON.stringify(this.formFields));
+        console.log("FORM FIELDS: " + JSON.stringify(this.formFields));        
+    }
+    ngAfterViewInit(): void {
+        setTimeout( () => {
+            switch(this.formMode) {
+                case "add":
+                    this.title = "New " + this.formDefinition.title;
+                    break;
+                case "edit":
+                    this.title = this.formDefinition.title + " " + this.formKey;             
+                    break;
+                case "view":
+                    this.crudEvent.next({eventType: CrudEventType.FORMDISABLED})
+                    this.title = this.formDefinition.title + " " + this.formKey; 
+                    break;
+            }
+        }, 0)
     }
 
     eventCallback($event : CrudEvent) : void {

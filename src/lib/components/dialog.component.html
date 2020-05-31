@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>{{formDefinition.title}}</h2>
+<h2 mat-dialog-title>{{title}}</h2>
 
 <div class="spinner-container" *ngIf="loading$ | async">
     <mat-spinner></mat-spinner>
@@ -9,7 +9,9 @@
 <mat-dialog-actions>
     <button class="mat-raised-button" (click)="close()">Close</button>
     <button *ngIf="formMode==='edit' || formMode==='add'" class="mat-raised-button mat-primary" (click)="submit()">Save</button>
+    <!--
     <button color="primary" (click)="delete()" aria-label="Delete Record">
         <mat-icon>delete</mat-icon>
     </button>
+    -->
 </mat-dialog-actions>
