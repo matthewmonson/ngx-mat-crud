@@ -1,0 +1,15 @@
+<form class="example-form" [formGroup]="formGroup">
+  
+  <ng-container *ngFor="let formField of formFields">
+    <crud-form-field [formField]="formField" [form]="formGroup"></crud-form-field>
+  </ng-container>
+
+  <!--
+  <button mat-flat-button color="primary" type="submit" [disabled]="!form.valid">Save</button>
+  -->
+</form>
+<!--
+<div *ngIf="payload" class="form-row">
+  <strong>Saved the following values</strong><br>{{payload}}
+</div>
+-->

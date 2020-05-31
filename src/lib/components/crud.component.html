@@ -1,0 +1,34 @@
+<mat-form-field>
+
+    <input matInput placeholder="Search" #input>
+
+</mat-form-field>
+
+<div class="spinner-container" *ngIf="loading$ | async">
+
+    <mat-spinner></mat-spinner>
+
+</div>
+
+<mat-table class="table mat-elevation-z8" [dataSource]="dataSource" matSort matSortDirection="asc" matSortDisableClear>
+
+    <ng-container *ngFor="let column of tableDefinition.columns" matColumnDef="{{column.dataField}}">
+
+        <mat-header-cell mat-sort-header *matHeaderCellDef>{{column.headingLabel}}</mat-header-cell>
+
+        <mat-cell class="duration-cell"
+                  *matCellDef="let row" (click)="editRow(row)">{{row[column.dataField]}}</mat-cell>
+
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+
+    <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+
+</mat-table>
+
+<mat-paginator [pageSize]="tableDefinition.defaultPageSize" [pageSizeOptions]="tableDefinition.pageSizes"></mat-paginator>
+
+<div class="button-row">
+    <button mat-raised-button (click)="addRow()" color="primary">Add</button>
+</div>

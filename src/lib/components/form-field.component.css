@@ -1,0 +1,7 @@
+.dynamic-form-field-full-width {
+    width: 100%;
+  }
+
+  ::ng-deep .hidden {
+    display: none !important;
+  }

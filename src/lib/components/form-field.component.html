@@ -1,0 +1,57 @@
+<mat-form-field *ngIf="(formField.controlType!=='toggle') && (formField.controlType!=='checkbox')" [ngClass]="{'hidden': formField.hidden }" [floatLabel]="formField.floatlabel" [appearance]="formField.appearance" [ngSwitch]="formField.controlType" class="dynamic-form-field-full-width" [formGroup]="form">
+  <mat-label>{{formField.label}}</mat-label>
+  <input matInput [readonly]="formField.readonly" [required]="formField.required" *ngSwitchCase="'textbox'" [formControlName]="formField.key" [placeholder]="formField.label" [type]="formField.type">  
+  <ng-container *ngSwitchCase="'dropdown'">
+    <mat-select [required]="formField.required" [placeholder]="formField.label" [formControlName]="formField.key">
+      <mat-option *ngFor="let opt of formField.options" [value]="opt.key">{{opt.value}}</mat-option>
+    </mat-select>
+  </ng-container>
+  <ng-container *ngSwitchCase="'hierdropdown'">
+    <mat-select [required]="formField.required" [placeholder]="formField.label" [formControlName]="formField.key">
+      <mat-option>-- None --</mat-option>
+      <mat-optgroup *ngFor="let optgroup of formField.options" [label]="optgroup.group">
+        <mat-option *ngFor="let opt of optgroup.options" [value]="opt.key">{{opt.value}}</mat-option>
+      </mat-optgroup>
+    </mat-select>
+  </ng-container>
+  <ng-container *ngSwitchCase="'date'">
+    <input matInput [readonly]="formField.readonly" [required]="formField.required" [matDatepicker]="picker" (dateInput)="addEvent('input', $event)" (dateChange)="addEvent('change', $event)" [formControlName]="formField.key" [placeholder]="formField.label" [value]="formField.value">
+    <mat-datepicker-toggle [disabled]="formField.readonly || formField.disabled || formField.hidden" matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker [disabled]="formField.readonly || formField.disabled || formField.hidden" #picker></mat-datepicker>
+  </ng-container>
+  <ng-container *ngSwitchCase="'multiselect'">
+    <mat-chip-list cdkDropList cdkDropListOrientation="horizontal" (cdkDropListDropped)="chipDropped($event)" [formControlName]="formField.key" [required]="formField.required" #chipList>
+      <mat-chip cdkDrag *ngFor="let value of chosenMultiselectOptions" [value]="value" [selectable]="false" [removable]="!(formField.readonly || formField.disabled)" (removed)="removeMultiselectOption(value)">
+        {{value.label}}
+        <mat-icon matChipRemove *ngIf="removable">cancel</mat-icon>
+      </mat-chip>
+      <input [readonly]="formField.readonly" (click)="openAutoCompletePanel(); $event.stopPropagation()" placeholder="{{formField.label}}..." #optionInput [formControl]="multiselectOptionCtrl" [matAutocomplete]="auto" 
+        [matChipInputFor]="chipList" [matChipInputSeparatorKeyCodes]="separatorKeysCodes" [matChipInputAddOnBlur]="addOnBlur">        
+    </mat-chip-list>
+    <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" (optionSelected)="selectedMultiselectOption($event)">
+      <mat-option *ngFor="let value of _filterMultiselectOptions(this.multiselectOptionCtrl.value)" [value]="value">
+        {{value.label}}
+      </mat-option>
+    </mat-autocomplete>
+  </ng-container>
+  <ng-container *ngSwitchCase="'dropdownsearch'">
+      <input [readonly]="formField.readonly" [required]="formField.required" (click)="openAutoCompletePanel(); $event.stopPropagation()" type="text" placeholder="Search..." matInput [formControlName]="formField.key" [matAutocomplete]="auto" (blur)="onGroupFieldBlur()">
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" (optionSelected)="selectedGroupField($event)">
+        <mat-option *ngFor="let value of filteredDropdownValues | async" [value]="value">
+          {{value.label}}
+        </mat-option>
+      </mat-autocomplete>
+  </ng-container>
+  <mat-hint *ngIf="loading">{{loadingtext}}</mat-hint>  
+  <mat-error *ngIf="!isValid">{{formField.label}} is required</mat-error>
+</mat-form-field>
+<mat-form-field *ngIf="formField.controlType==='toggle'" [ngClass]="{'hidden': formField.hidden }" [formGroup]="form">
+  <!-- the matInput with display:none makes the magic. It's ugly, I've warned you -->
+  <input matInput [formControlName]="formField.key" style="display: none">
+  <mat-slide-toggle [disabled]="formField.readonly || formField.disabled" [checked]="isChecked" (change)="toggleChanged($event)">{{formField.label}}</mat-slide-toggle>
+</mat-form-field>
+<mat-form-field *ngIf="formField.controlType==='checkbox'" [ngClass]="{'hidden': formField.hidden }" [formGroup]="form">
+  <!-- the matInput with display:none makes the magic. It's ugly, I've warned you -->
+  <input matInput [formControlName]="formField.key" style="display: none">
+  <mat-checkbox [disabled]="formField.readonly || formField.disabled" [checked]="isChecked" (change)="toggleChanged($event)">{{formField.label}}</mat-checkbox>
+</mat-form-field>

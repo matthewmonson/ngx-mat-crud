@@ -1,0 +1,14 @@
+{
+  "name": "ngx-mat-crud",
+  "version": "0.0.1",
+  "peerDependencies": {
+    "@angular/common": "^9.1.9",
+    "@angular/core": "^9.1.9",
+    "@angular/material": "^9.2.4",
+    "@angular/material-moment-adapter": "^9.2.4",
+    "moment": "^2.26.0"
+  },
+  "dependencies": {    
+    "tslib": "^1.10.0"
+  }
+}
