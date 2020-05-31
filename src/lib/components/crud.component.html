@@ -17,9 +17,28 @@
         <mat-header-cell mat-sort-header *matHeaderCellDef>{{column.headingLabel}}</mat-header-cell>
 
         <mat-cell class="duration-cell"
-                  *matCellDef="let row" (click)="editRow(row)">{{row[column.dataField]}}</mat-cell>
+                  *matCellDef="let row" (click)="viewRow(row)">{{row[column.dataField]}}</mat-cell>
 
     </ng-container>
+
+    <!-- actions -->
+    <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef>
+          <button mat-icon-button color="primary" (click)="addRow()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </mat-header-cell>
+  
+        <mat-cell *matCellDef="let row; let i=index;">
+          <button mat-icon-button color="primary" (click)="editRow(row)">
+            <mat-icon aria-label="Edit">edit</mat-icon>
+          </button>
+  
+          <button mat-icon-button color="primary" (click)="deleteRow(row)">
+            <mat-icon aria-label="Delete">delete</mat-icon>
+          </button>
+        </mat-cell>
+      </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
 
@@ -28,7 +47,3 @@
 </mat-table>
 
 <mat-paginator [pageSize]="tableDefinition.defaultPageSize" [pageSizeOptions]="tableDefinition.pageSizes"></mat-paginator>
-
-<div class="button-row">
-    <button mat-raised-button (click)="addRow()" color="primary">Add</button>
-</div>

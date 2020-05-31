@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild, Input, Output, EventEmitter } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, Input, Output, EventEmitter, Inject } from '@angular/core';
 import { MatPaginator } from "@angular/material/paginator";
 import { MatSort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
@@ -6,10 +6,35 @@ import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 import { merge, fromEvent, BehaviorSubject } from "rxjs";
 import { TableDefinition } from '../interfaces/table-definition';
 import { TableEventType } from '../enums/table-event-type-enum';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { DialogComponent } from './dialog.component';
 import { CrudEvent } from './crud-event';
 import { FormDefinition } from './form-definition';
+import { CrudEventType } from '../enums/crud-event-type-enum';
+
+@Component({
+  selector: 'confirm-delete-dialog',
+  template: `
+  <h2 mat-dialog-title>Delete {{message}}?</h2>
+
+  <mat-dialog-actions>
+      <button mat-button (click)="onNoClick()" cdkFocusInitial>No</button>
+      <button mat-button (click)="onYesClick()">Yes Delete</button>
+  </mat-dialog-actions>
+  `
+})
+export class ConfirmDeleteDialogComponent {
+  message;
+  constructor(
+      public dialogRef: MatDialogRef<ConfirmDeleteDialogComponent>,
+      @Inject(MAT_DIALOG_DATA) data) { this.message = data }
+  onNoClick(): void {
+      this.dialogRef.close();
+  }
+  onYesClick(): void {
+      this.dialogRef.close(true);
+  }
+}
 
 @Component({
   selector: 'crud',
@@ -70,6 +95,7 @@ export class CrudComponent implements OnInit {
     for (let column of this.tableDefinition.columns) {
       this.displayedColumns.push(column.dataField);
     }
+    this.displayedColumns.push("actions");
   }
 
   ngAfterViewInit() {
@@ -147,23 +173,74 @@ export class CrudComponent implements OnInit {
       });
   }
 
-  reloadPage() {
+  viewRow(row) {
     this.loadingSubject.next(true);
-    this.listRecordsCallback({
-      eventType: TableEventType.QUERYDATASOURCE,
-      inputValue: this.input.nativeElement.value,
-      sortDirection: this.sort.direction,
-      pageIndex: this.paginator.pageIndex,
-      pageSize: this.paginator.pageSize
-    }).subscribe(records => {
-      this.dataSource = new MatTableDataSource<any>(records);
-      this.dataSource.paginator = this.paginator;
+    this.readRecordCallback(row[this.tableDefinition.rowKeyField]).subscribe(record => {
       this.loadingSubject.next(false);
+      const dialogRef = this.dialog.open(DialogComponent, {
+        disableClose: true,
+        data: {
+          formMode: "view",
+          formDefinition: this.formDefinition,
+          formData: record,
+          formKey: record[this.tableDefinition.rowKeyField],
+          callbacks: {
+            eventCallback: this.eventCallbackFunction,
+            createRecord: this.createRecordCallbackFunction,
+            updateRecord: this.updateRecordCallbackFunction,
+            deleteRecord: this.deleteRecordCallbackFunction
+          }
+        },
+      });
     },
       error => {
         this.loadingSubject.next(false);
         console.error(error);
       });
+  }
+
+  deleteRow(row) {
+    const confirmDialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
+        width: '350px',
+        data: this.formDefinition.title + " " + row[this.tableDefinition.rowKeyField] 
+      });
+      confirmDialogRef.afterClosed().subscribe(result => {
+        if(result && result==true) {
+            this.loadingSubject.next(true);
+                this.deleteRecord({eventType: CrudEventType.DELETECONFIRMED, key: row[this.tableDefinition.rowKeyField]}).subscribe(
+                    success=> {
+                        this.eventCallback({eventType: CrudEventType.SUCCESS, eventData: {message: "Record delete.", detail: success}});
+                        this.loadingSubject.next(false);                            
+                        //this.dialogRef.close(true);                            
+                    },
+                    error => {
+                        this.eventCallback({eventType: CrudEventType.ERROR, eventData: {message: "Error during record delete.", detail: error}});
+                        this.loadingSubject.next(false);
+                    }
+                )
+        }
+      });
+  }
+
+  reloadPage() {
+    setTimeout( () => {
+      this.loadingSubject.next(true);
+      this.listRecordsCallback({
+          eventType: TableEventType.QUERYDATASOURCE,
+          inputValue: this.input.nativeElement.value,
+          sortDirection: this.sort.direction,
+          pageIndex: this.paginator.pageIndex,
+          pageSize: this.paginator.pageSize
+        }).subscribe(records => {
+          this.dataSource = new MatTableDataSource<any>(records);
+          this.dataSource.paginator = this.paginator;
+          this.loadingSubject.next(false);
+        },
+        error => {
+          this.loadingSubject.next(false);
+          console.error(error);
+        });
+    },0);
   }
 
   eventCallback($event: CrudEvent): void {

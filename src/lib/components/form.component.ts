@@ -28,12 +28,19 @@ export class FormComponent implements OnInit {
   constructor( private rfcs: DynamicFormControlService) {     
   }
 
-  ngOnInit() {
-    this.crudEvent.subscribe(event => {
-      if(this.formGroup.valid) {
-        this.formEvent.emit({eventType: CrudEventType.FORMSUBMITTED, key: this.formKey, eventData: this.formGroup.value});
-      }
-    });
+  ngOnInit() {    
     this.formGroup = this.rfcs.toFormGroup(this.formFields);
+    this.crudEvent.subscribe(event => {
+      switch(event.eventType) {
+        case CrudEventType.FORMSUBMITTED:
+          if(this.formGroup.valid) {
+            this.formEvent.emit({eventType: CrudEventType.FORMSUBMITTED, key: this.formKey, eventData: this.formGroup.value});
+          }
+          break;
+          case CrudEventType.FORMDISABLED:
+            this.formGroup.disable();
+            break;
+      }      
+    });
   }
 }

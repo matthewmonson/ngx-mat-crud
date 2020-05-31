@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
 
 import { DynamicFormControlService } from './services/dynamic-form-control.service';
-import { CrudComponent } from './components/crud.component';
-import { DialogComponent, ConfirmDeleteDialogComponent } from './components/dialog.component';
+import { CrudComponent, ConfirmDeleteDialogComponent } from './components/crud.component';
+import { DialogComponent} from './components/dialog.component';
 import { FormComponent } from './components/form.component';
 import { FormFieldComponent } from './components/form-field.component';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
